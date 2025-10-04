@@ -23,6 +23,10 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { messages, system } = req.body || {};
 
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Server not configured: missing GEMINI_API_KEY' });
+    }
+
     const history = Array.isArray(messages)
       ? messages.map(m => ({
           role: m.role === 'user' ? 'user' : 'model',
@@ -42,6 +46,10 @@ app.post('/api/chat', async (req, res) => {
     const lastUser = [...history].reverse().find(m => m.role === 'user');
     const input = (lastUser?.parts?.[0]?.text || '').trim();
 
+    if (!input && !system) {
+      return res.status(400).json({ error: 'No input provided' });
+    }
+
     const instructionPrefix = prompt ? `${prompt}\n\n` : '';
     const result = await chat.sendMessage([{ text: `${instructionPrefix}${input}` }]);
     const text = (await result.response).text();
@@ -51,6 +59,15 @@ app.post('/api/chat', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Chat failed' });
   }
+});
+
+// Fallback error handler to always return JSON
+// Must be defined after routes
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled error:', err);
+  if (res.headersSent) return;
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 const port = Number(process.env.PORT || 3000);

@@ -58,12 +58,27 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ messages: history, system })
           });
-          const data = await res.json();
-          const reply = data.reply || 'No reply';
+
+          let data = null;
+          const text = await res.text();
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch (_) {
+            data = null;
+          }
+
+          if (!res.ok) {
+            const message = (data && data.error) ? data.error : (text || `HTTP ${res.status}`);
+            history.push({ role: 'assistant', content: `Error: ${message}` });
+            render('assistant', `Error: ${message}`);
+            return;
+          }
+
+          const reply = (data && data.reply) ? data.reply : 'No reply';
           history.push({ role: 'assistant', content: reply });
           render('assistant', reply);
         } catch (err) {
-          render('assistant', 'Error: ' + (err.message || err));
+          render('assistant', 'Network error: ' + (err.message || err));
         }
       });
     </script>
