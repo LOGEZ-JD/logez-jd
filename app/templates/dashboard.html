@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="brand">My App</div>
+    <div class="links">
+      <a href="/">Dashboard</a>
+      <a href="/chat">AI Chat</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1>Dashboard</h1>
+
+    <section class="cards">
+      <div class="card">
+        <div class="card-title">Total Messages</div>
+        <div class="metric" id="metric-total">0</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Messages (24h)</div>
+        <div class="metric" id="metric-24h">0</div>
+      </div>
+    </section>
+
+    <section class="table-section">
+      <h2>Recent Events</h2>
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Value</th><th>Created</th></tr>
+        </thead>
+        <tbody id="events-body"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
