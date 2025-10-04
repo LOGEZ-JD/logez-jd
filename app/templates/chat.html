@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Chat</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="brand">My App</div>
+    <div class="links">
+      <a href="/">Dashboard</a>
+      <a href="/chat" class="active">AI Chat</a>
+    </div>
+  </nav>
+
+  <main class="container chat">
+    <h1>AI Chat</h1>
+
+    <div id="chat-window" class="chat-window"></div>
+
+    <form id="chat-form" class="chat-form">
+      <input type="text" id="chat-input" placeholder="Type your message..." autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <script src="/static/js/chat.js"></script>
+</body>
+</html>
