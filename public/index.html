@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Budget Assistant</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; background: #0b1020; color: #e8eefc; }
+      header { padding: 16px 20px; background: #0f162b; border-bottom: 1px solid #202b4d; }
+      main { display: grid; grid-template-rows: 1fr auto; height: calc(100vh - 66px); }
+      #messages { padding: 16px; overflow: auto; }
+      .msg { max-width: 780px; margin: 0 auto 12px; padding: 12px 14px; border-radius: 12px; white-space: pre-wrap; line-height: 1.4; }
+      .user { background: #1f2a4c; }
+      .assistant { background: #162236; }
+      form { display: flex; gap: 8px; padding: 14px; background: #0f162b; border-top: 1px solid #202b4d; }
+      textarea { flex: 1; resize: none; min-height: 54px; padding: 12px; border-radius: 10px; border: 1px solid #25325a; background: #0b1224; color: #e8eefc; }
+      button { padding: 12px 16px; border-radius: 10px; border: 1px solid #4158a6; background: #2a3b78; color: #fff; }
+      .note { opacity: .75; font-size: 12px; text-align: center; margin-top: 6px; }
+    </style>
+  </head>
+  <body>
+    <header><strong>Smart Budget Assistant</strong></header>
+    <main>
+      <div id="messages"></div>
+      <form id="chat-form">
+        <textarea id="input" placeholder="Ask about budgets: e.g. ‘Help me plan a $200/week food budget.’"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </main>
+    <div class="note">Run the server and set GEMINI_API_KEY in .env</div>
+    <script>
+      const messagesDiv = document.getElementById('messages');
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('input');
+      const history = [];
+
+      function render(role, content) {
+        const el = document.createElement('div');
+        el.className = 'msg ' + (role === 'user' ? 'user' : 'assistant');
+        el.textContent = content;
+        messagesDiv.appendChild(el);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        history.push({ role: 'user', content: text });
+        render('user', text);
+
+        const system = 'You are SmartBudget, a friendly budgeting assistant. You: 1) clarify goals, 2) compute allocations, 3) suggest categories, 4) warn about risks, 5) produce an actionable budget with totals. Keep answers concise and numeric when useful.';
+
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: history, system })
+          });
+
+          let data = null;
+          const text = await res.text();
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch (_) {
+            data = null;
+          }
+
+          if (!res.ok) {
+            const message = (data && data.error) ? data.error : (text || `HTTP ${res.status}`);
+            history.push({ role: 'assistant', content: `Error: ${message}` });
+            render('assistant', `Error: ${message}`);
+            return;
+          }
+
+          const reply = (data && data.reply) ? data.reply : 'No reply';
+          history.push({ role: 'assistant', content: reply });
+          render('assistant', reply);
+        } catch (err) {
+          render('assistant', 'Network error: ' + (err.message || err));
+        }
+      });
+    </script>
+  </body>
+</html>
